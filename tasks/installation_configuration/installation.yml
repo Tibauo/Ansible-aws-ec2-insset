@@ -1,0 +1,8 @@
+- name: II.1/ Install Apache
+  apt: name=apache2 state=present
+
+- name: II.2/ Mise en place de la pageweb
+  copy: src=pageweb/index.html dest=/var/www/html/index.html mode=0664
+
+- name: III.3/ Install Django
+  apt: name=python-django state=present

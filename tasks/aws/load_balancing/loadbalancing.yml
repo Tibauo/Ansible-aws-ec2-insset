@@ -1,0 +1,54 @@
+#creation de notre loadbalancing
+- name: III.1/ Creation du loadbalancer
+  local_action:
+    module: ec2_elb_lb
+    name: tibo-balancer
+    security_group_ids: "{{ ec2securitygroup.group_id }}"
+    region: "{{aws_region}}"
+    scheme: internet-facing
+    state: present
+    subnets:
+      - subnet-d9bd4f80
+      - subnet-3f0e1c17
+      - subnet-e9e183d3
+      - subnet-19c2126e
+    listeners:
+      - protocol: http
+        load_balancer_port: 80
+        instance_port: 80
+
+#Attacher chaques instances au load balancer
+- name: III.2/ Ajout des instances a ELB
+  local_action:
+    module: ec2_elb
+    region: "{{aws_region}}"
+    ec2_elbs: "tibo-balancer"
+    instance_id: "{{ item.id }}"
+    state: present
+  with_items: ec2.instances
+
+
+- name: III.3/ Creer Scalabilite
+  local_action:
+    module: ec2_lc
+    name: tibo-scaling
+    region: "{{aws_region}}"
+    image_id: "{{ami_id}}"
+    security_groups: "{{ security_group }}"
+    instance_type: "{{ instance_type }}"
+
+- name: III.4/ Scalabilite
+  local_action:
+    module: ec2_asg
+    name: tibo-auto-scaling
+    region: "{{aws_region}}"
+    launch_config_name: tibo-scaling
+    load_balancers: tibo-balancer
+    health_check_period: 300
+    health_check_type: EC2
+    min_size: 2
+    max_size: 4
+    desired_capacity: 2
+
+
+

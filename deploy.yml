@@ -1,0 +1,25 @@
+#Création et configuration des instances
+- name: I - Gestion des instances ec2
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: False
+  tasks:
+    - include: tasks/aws/deploy/instance.yml
+
+#installer et configurer les appli
+- name: II - Gestion des applications
+  hosts: ec2instances
+  remote_user: ubuntu
+  sudo: yes
+  gather_facts: True
+  tasks:
+  - include: tasks/installation_configuration/installation.yml
+  - include: tasks/installation_configuration/configuration.yml
+
+#gestion du load balancing
+- name: III - Gestion du loadbalancing et de la scalabilite
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: False
+  tasks:    
+    - include: tasks/aws/load_balancing/loadbalancing.yml

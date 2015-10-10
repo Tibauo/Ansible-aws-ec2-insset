@@ -1,0 +1,7 @@
+# Variables globales
+key_name: tiboclef
+aws_region: us-east-1
+ami_id: ami-e7de9b82
+instance_type: t2.micro
+security_group: tibo-sec
+webserv: webserveur

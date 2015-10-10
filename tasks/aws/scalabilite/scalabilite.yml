@@ -1,0 +1,48 @@
+- name: IV.1/ Creer Scalabilite
+  local_action:
+    module: ec2_lc
+    name: tibo-scaling
+    region: "{{aws_region}}"
+    image_id: "{{ami_id}}"
+    security_groups: "{{ security_group }}"
+    instance_type: "{{ instance_type }}"
+
+- name: IV.2/ Scalabilite
+  local_action:
+    module: ec2_asg
+    name: tibo-auto-scaling
+    region: "{{aws_region}}"
+    launch_config_name: tibo-scaling
+    load_balancers: tibo-balancer
+    health_check_period: 300
+    health_check_type: EC2
+    min_size: 2
+    max_size: 4
+    desired_capacity: 2
+
+
+- name: IV.3/ Scalabilite regle monte de charge
+  local_action:
+    module: ec2_scaling_policy
+    state: present
+    name: tibo-scaleuppolicy
+    region: "{{ aws_region }}"
+    adjustment_type: ChangeInCapacity
+    asg_name: tibo-autoscaling
+    scaling_adjustment: 50
+    cooldown: 300
+  register: scale_up_output
+
+- name: IV.4/ Scalabilite regle descente de charge
+  local_action:
+    module: ec2_scaling_policy
+    state: present
+    name: tibo-scaledownpolicy
+    region: "{{ aws_region }}"
+    adjustment_type: ChangeInCapacity
+    asg_name: tibo-autoscaling
+    scaling_adjustment: -1
+    cooldown: 300
+  register: scale_down_output
+
+

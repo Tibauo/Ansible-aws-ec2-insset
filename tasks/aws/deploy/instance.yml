@@ -1,0 +1,48 @@
+- name: I.1/ Creation du security group
+  local_action:
+    module: ec2_group
+    name: "{{ security_group }}"
+    description: groupedetibo
+    region: "{{ aws_region }}"
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+    rules_egress:
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+  register: ec2securitygroup
+
+#Creation des instances
+- name: I.2/ Creation de(s) instance(s) ec2
+  local_action:
+    module: ec2
+    key_name: "{{key_name}}"
+    region: "{{aws_region}}"
+    instance_type: "{{instance_type}}"
+    image: "{{ami_id}}"
+    count: 1
+    instance_tags:
+        Name: "tibo : {{webserv}}"
+    wait: yes
+  register: ec2
+
+#Ajout de chaque instances dans un groupe
+- name: I.3/ Ajout des instances au groupes ec2instances
+  local_action: add_host hostname="{{ item.public_dns_name }}" groupname=ec2instances
+  with_items: ec2.instances
+
+#Attentes que les instances soient up
+- name: I.4/ Attentes que les instances soient Up
+  local_action: wait_for host={{ item.public_dns_name }} port=22 delay=60 timeout=320 state=started
+  with_items: ec2.instances
+
+#Affiche le public_dns_name
+- debug: hostname
