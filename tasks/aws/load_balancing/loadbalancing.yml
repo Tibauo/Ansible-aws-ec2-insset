@@ -26,29 +26,3 @@
     instance_id: "{{ item.id }}"
     state: present
   with_items: ec2.instances
-
-
-- name: III.3/ Creer Scalabilite
-  local_action:
-    module: ec2_lc
-    name: tibo-scaling
-    region: "{{aws_region}}"
-    image_id: "{{ami_id}}"
-    security_groups: "{{ security_group }}"
-    instance_type: "{{ instance_type }}"
-
-- name: III.4/ Scalabilite
-  local_action:
-    module: ec2_asg
-    name: tibo-auto-scaling
-    region: "{{aws_region}}"
-    launch_config_name: tibo-scaling
-    load_balancers: tibo-balancer
-    health_check_period: 300
-    health_check_type: EC2
-    min_size: 2
-    max_size: 4
-    desired_capacity: 2
-
-
-
